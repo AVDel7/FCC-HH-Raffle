@@ -1,0 +1,60 @@
+@ ~ 21:41 -- failed
+
+    hh test --network rinkeby
+
+
+    Raffle Stating Tests
+        fulfillRandomWords
+    Setting up test ...
+    Setting up listener ...
+    Entering raffle with 0.01 ETH
+    Starting balance: 0.05365147663487825 ETH
+    Waiting for event ...
+    > WinnerPicked event fired!
+    AssertionError: expected '63502690133489576' to equal '63651476634878250'
+        at FragmentRunningEvent.<anonymous> (/home/av/Documents/CodeEth/HardhatLottery/test/staging/Raffle.staging.js:36:24)
+        at runMicrotasks (<anonymous>)
+        at processTicksAndRejections (node:internal/process/task_queues:96:5) {
+    showDiff: true,
+    actual: '63502690133489576',
+    expected: '63651476634878250',
+    operator: 'strictEqual'
+    }
+        1) works with live chainlink Keepers and VRF, we get a random winner
+
+
+    0 passing (6m)
+    1 failing
+
+    1) Raffle Stating Tests
+        fulfillRandomWords
+            works with live chainlink Keepers and VRF, we get a random winner:
+
+        AssertionError: expected '63502690133489576' to equal '63651476634878250'
+        + expected - actual
+
+        -63502690133489576
+        +63651476634878250
+        
+        at FragmentRunningEvent.<anonymous> (test/staging/Raffle.staging.js:36:24)
+        at runMicrotasks (<anonymous>)
+        at processTicksAndRejections (node:internal/process/task_queues:96:5)
+
+
+@ ~ 21:55
+
+    hh test --network rinkeby
+
+
+    Raffle Stating Tests
+        fulfillRandomWords
+    Setting up test ...
+    Setting up listener ...
+    Entering raffle with 0.01 ETH
+    Starting balance: 0.053399077632660676 ETH
+    Waiting for event ...
+    > WinnerPicked event fired!
+        ✔ works with live chainlink Keepers and VRF, we get a random winner (86815ms)
+
+
+    1 passing (1m)

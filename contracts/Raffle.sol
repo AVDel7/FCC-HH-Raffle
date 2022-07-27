@@ -27,7 +27,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
     uint256 private immutable i_entranceFee;
     VRFCoordinatorV2Interface private immutable i_vrfCoordinator;
     bytes32 private immutable i_gasLane;
-    uint64 private immutable i_subscritionID;
+    uint64 private immutable i_subscriptionId;
     uint32 private immutable i_callbackGasLimit;
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint32 private constant NUM_WORDS = 1;
@@ -55,7 +55,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
         i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
         i_entranceFee = entranceFee;
         i_gasLane = gasLane;
-        i_subscritionID = subscritionID;
+        i_subscriptionId = subscritionID;
         i_callbackGasLimit = callbackGasLimit;
         s_raffleState = RaffleState.OPEN;
         s_lastTimestamp = block.timestamp;
@@ -106,7 +106,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
         s_raffleState = RaffleState.CALCULATING;
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane, // gasLane
-            i_subscritionID,
+            i_subscriptionId,
             REQUEST_CONFIRMATIONS,
             i_callbackGasLimit, // How much computation our fulfillRandomWords() is allowed to consume
             NUM_WORDS // How many random numbers to retrieve from the VRF

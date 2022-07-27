@@ -1,35 +1,29 @@
 const { assert, expect } = require("chai")
 const { getNamedAccounts, ethers, network } = require("hardhat")
-const { developmentChains, networkConfig } = require("../../helper-hardhat-config")
+const { developmentChains } = require("../../helper-hardhat-config")
 
 developmentChains.includes(network.name)
   ? describe.skip
-  : describe("Raffle Unit Tests", function () {
+  : describe("Raffle Stating Tests", function () {
       let raffle, raffleEntranceFee, deployer
 
       beforeEach(async function () {
         deployer = (await getNamedAccounts()).deployer
-        console.log(`Deployer: ${deployer}`)
-        await deployments.fixture(["all"])
-        console.log(`Retrieving contract from deployer ${deployer.address}`)
-        raffle = await ethers.getContract("Raffle", deployer) // CONTINUE DEBUGGING HERE
-        console.log(`Contract retrieved: ${raffle.address}`)
+        raffle = await ethers.getContract("Raffle", deployer)
         raffleEntranceFee = await raffle.getEntranceFee()
-        interval = await raffle.getInterval()
       })
 
       describe("fulfillRandomWords", function () {
-        it("works with live chainlink keepers and VRF, we get a random winner", async function () {
+        it("works with live chainlink Keepers and VRF, we get a random winner", async function () {
+          console.log("Setting up test ...")
           const startingTimestamp = await raffle.getLatestTimestamp()
-          console.log(`Latest timestamp: ${startingTimestamp}`)
-          const accounts = await ethers.getSigner()
+          const accounts = await ethers.getSigners()
 
           // Set listener first.
           console.log("Setting up listener ...")
           await new Promise(async function (resolve, reject) {
             raffle.once("WinnerPicked", async function () {
               console.log("> WinnerPicked event fired!")
-              resolve()
               try {
                 const recentWinner = await raffle.getRecentWinner()
                 const raffleState = await raffle.getRaffleState()
@@ -44,15 +38,19 @@ developmentChains.includes(network.name)
                 resolve()
               } catch (error) {
                 console.log(error)
+                reject(error)
               }
             })
 
             // Entering the raffle
-            console.log(`Entering raffle with ${raffleEntranceFee} ETH`)
-            await raffle.enterRaffle({ value: raffleEntranceFee })
+            console.log(`Entering raffle with ${ethers.utils.formatEther(raffleEntranceFee)} ETH`)
+            const tx = await raffle.enterRaffle({ value: raffleEntranceFee })
+            await tx.wait(1)
             const winnerStartingBalance = await accounts[0].getBalance()
-            console.log(`Starting balance: ${winnerStartingBalance}`)
+            console.log(`Starting balance: ${ethers.utils.formatEther(winnerStartingBalance)} ETH`)
+            console.log("Waiting for event ...")
           })
         })
       })
     })
+
