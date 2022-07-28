@@ -10,7 +10,7 @@ const { developmentChains, networkConfig } = require("../../helper-hardhat-confi
 
       beforeEach(async function () {
         deployer = (await getNamedAccounts()).deployer
-        await deployments.fixture(["all"])
+        await deployments.fixture(["all"]) // More about fixtures @ https://ethereum-waffle.readthedocs.io/en/latest/fixtures.html
         raffle = await ethers.getContract("Raffle", deployer)
         vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock", deployer)
         raffleEntranceFee = await raffle.getEntranceFee()
@@ -34,11 +34,9 @@ const { developmentChains, networkConfig } = require("../../helper-hardhat-confi
           const playerFromContract = await raffle.getPlayer(0)
           assert.equal(playerFromContract, deployer)
         })
-
         it("emits event on enter", async function () {
           await expect(raffle.enterRaffle({ value: raffleEntranceFee })).to.emit(raffle, "RaffleEntered")
         })
-
         it("doesn't allow entrance when raffle is calculating", async function () {
           // This is a tricky one. We need to pretend to be the Keeper contract to force the contract into a state of CALCULATING
           await raffle.enterRaffle({ value: raffleEntranceFee })
@@ -59,7 +57,8 @@ const { developmentChains, networkConfig } = require("../../helper-hardhat-confi
           await network.provider.send("evm_increaseTime", [interval.toNumber() + 1])
           await network.provider.send("evm_mine", [])
 
-          //await raffle.checkUpkeep([]) // This sends a transaction... I want to simulate when the contract itself is calling this
+          /* await raffle.checkUpkeep([]) /* This sends a transaction... I want to simulate when the Chainlink contract 
+             itself is calling this. I.e. from within the block chain, like one contract . */
           const { upkeepNeeded } = await raffle.callStatic.checkUpkeep([])
 
           assert(!upkeepNeeded)
@@ -98,7 +97,7 @@ const { developmentChains, networkConfig } = require("../../helper-hardhat-confi
           const tx = await raffle.performUpkeep([])
           assert(tx)
         })
-        it("reverts when checkUpkeep is false", async function () {
+        it("reverts when upkeep is not needed", async function () {
           await expect(raffle.performUpkeep([])).to.be.revertedWith("Raffle__UpkeepNotNeeded") // Note: We can also test for expected parameters within the error returned.
         })
         it("updates the raffle state, emmits and event, and calls the vrfCoordinator", async function () {
@@ -154,7 +153,10 @@ const { developmentChains, networkConfig } = require("../../helper-hardhat-confi
                 assert.equal(numPlayers.toString(), "0")
                 assert.equal(raffleState.toString(), "0")
                 assert(endingTimestamp > startingTimestamp)
-                assert.equal(winnerEndingBalance.toString(), winnerStartingBalance.add(raffleEntranceFee.mul(additionalEntrants).add(raffleEntranceFee).toString()))
+                assert.equal(
+                  winnerEndingBalance.toString(),
+                  winnerStartingBalance.add(raffleEntranceFee.mul(additionalEntrants).add(raffleEntranceFee).toString())
+                )
               } catch (e) {
                 reject(e) // if try fails, rejects the promise
               }
@@ -164,11 +166,12 @@ const { developmentChains, networkConfig } = require("../../helper-hardhat-confi
             // Mocking Chainlink Keepers
             const tx = await raffle.performUpkeep([])
             const txReceipt = await tx.wait(1)
-            // Mocking Chainlink's VRF
+
             const winnerStartingBalance = await accounts[1].getBalance() // The test is deterministic enough that we know the winner beforehand.
+
+            // Mocking Chainlink's VRF
             await vrfCoordinatorV2Mock.fulfillRandomWords(txReceipt.events[1].args[0], raffle.address) // Note: For some reason txReceipt.events[1].args.requestId doesn't work for me.
           })
         })
-
       })
     })
